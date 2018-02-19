@@ -15,7 +15,7 @@ defmodule Leader do
   defp next(acceptors, replicas, ballot_num, active, proposals) do
     receive do
       {:propose, s, c} ->
-        if !DAC.there_exists_another(proposals, s) do
+        if !DAC.there_exists(proposals, s) do
           if active do
             # TODO: change commander index
             # commander_name = DAC.node_name(config.setup, "commander", 0)
@@ -54,7 +54,7 @@ defmodule Leader do
   end # pmax
 
   defp update(x, y) do
-    x_list = Enum.filter(MapSet.to_list(x), fn {s, c} -> !DAC.there_exists_another(x, {s, c}) end) 
+    x_list = Enum.filter(MapSet.to_list(x), fn {s, c} -> !DAC.there_exists(x, {s, c}) end) 
     MapSet.union(MapSet.new(x_list), y)
   end # update
 
