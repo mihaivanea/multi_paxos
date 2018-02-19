@@ -1,8 +1,8 @@
 # Mihail Vanea (mv1315)
 
-defmodule Accpetor do
+defmodule Acceptor do
 
-  def start() do
+  def start(config) do
     ballot_num = 0
     accepted = MapSet.new()
     next(ballot_num, accepted)
