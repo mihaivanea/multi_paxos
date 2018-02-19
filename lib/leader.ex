@@ -5,7 +5,7 @@ defmodule Leader do
   def start(acceptors, replicas) do
     ballot_num = {0, self()}
     active = false
-    proposals = Mapset.new()
+    proposals = MapSet.new()
     # TODO: change scout index
     # scout_name = DAC.node_name(config.setup, "scout", 0)
     DAC.node_spawn("scout", Scout, :start, [self(), acceptors, ballot_num])
@@ -39,29 +39,29 @@ defmodule Leader do
     next(acceptors, replicas, ballot_num, active, proposals)
   end # next
 
-  defp there_exists(set, {s, c}) do
-    Enum.at((for {s, c1} <- MapSet.to_list(set), do: {s, c1}), 
-      fn({s, c1}) -> c != c1 end)
+  def there_exists(set, {s, c}) do
+    cmd_list = for {^s, c} <- set, do: c
+    match_slots = for {^s, c1} <- MapSet.to_list(set), do: {s, c1}
+    match_slots = for m <- match_slots, do: {m, c}
+    Enum.any?(match_slots, fn({{_, c}, c1}) -> c1 != c and Enum.member?(cmd_list, c1) end)
   end # there_exists
 
-  defp get_highest_ballot(pvalues, slot) do
-    for_slot = for {b, slot, c} <- pvalues, do: {b, slot, c}
+  def get_highest_ballot(pvalues, slot) do
+    for_slot = for {b, ^slot, c} <- pvalues, do: {b, slot, c}
     b_list = for {b, _, _} <- for_slot, do: b
     max_bal = Enum.max(b_list) 
-    for {max_bal, s, c} <- for_slot, do: {s, c}
+    for {^max_bal, s, c} <- for_slot, do: {s, c}
   end # get_highest_ballot
 
-  defp pmax(pvalues) do
-    pvalues = MapSet.to_list(pvalues)
-    s_list = for {_, s, _} <- pvalues, do: s
+  def pmax(pvalues) do
+    s_list = for {_, s, _} <- MapSet.to_list(pvalues), do: s
     highest = []
     for slot <- s_list, do:
-      highest ++ [get_highest_ballot(pvalues, slot)]
+      highest ++ [get_highest_ballot(MapSet.to_list(pvalues), slot)]
   end # pmax
 
-  defp update(x, y) do
-    x_list = MapSet.to_list(x)
-    x_list = Enum.filter(x_list, fn {_, s, _} -> !there_exists(x, s) end) 
+  def update(x, y) do
+    x_list = Enum.filter(MapSet.to_list(x), fn {s, c} -> !there_exists(x, {s, c}) end) 
     MapSet.union(MapSet.new(x_list), y)
   end # update
 
