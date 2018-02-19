@@ -39,8 +39,9 @@ defmodule Leader do
     next(acceptors, replicas, ballot_num, active, proposals)
   end # next
 
-  defp there_exists(set, s) do
-    Enum.member?((for {k, _} <- MapSet.to_list(set), do: k), s)
+  defp there_exists(set, {s, c}) do
+    Enum.at((for {s, c1} <- MapSet.to_list(set), do: {s, c1}), 
+      fn({s, c1}) -> c != c1 end)
   end # there_exists
 
   defp get_highest_ballot(pvalues, slot) do
