@@ -22,7 +22,7 @@ defmodule Replica do
       {:decision, s, c} -> 
         new_decisions = MapSet.put(decisions, {s, c})
         {new_proposals, new_requests, new_slot_out, new_state} = while_decision(
-          new_decisions, proposals, requests, slot_out, c, state)
+          new_decisions, proposals, requests, slot_out, c, state, leaders)
         {new_slot_in, new_requests, new_proposals} = 
           propose(slot_in, new_slot_out, new_requests, new_proposals, new_decisions, leaders)
         next(new_state, new_slot_in, new_slot_out, new_requests, new_proposals, new_decisions, leaders)
@@ -42,7 +42,7 @@ defmodule Replica do
           {proposals, requests}
         end
       {new_slot_out, new_state} = perform(c_prime, decisions, slot_out, state)
-      while_decision(decisions, new_proposals, new_requests, new_slot_out, c, new_state)
+      while_decision(decisions, new_proposals, new_requests, new_slot_out, c, new_state, leaders)
     else
       {proposals, requests, slot_out, state}
     end
@@ -60,6 +60,7 @@ defmodule Replica do
       {slot_out + 1, state}
     else
       {next, result} = op(state) 
+      send()
       send(k, {:response, cid, result})
       {slot_out + 1, next}
     end
