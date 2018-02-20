@@ -31,7 +31,7 @@ defp next config, client_num, replicas, sent do
 
     # round robin which replicas to sent requests to
     replica = Enum.at replicas, rem(sent, length(replicas))
-    send replica, { :client_request, cmd }
+    send replica, { :request, cmd }
 
     if sent == config.max_requests, do: send self(), :client_stop
 

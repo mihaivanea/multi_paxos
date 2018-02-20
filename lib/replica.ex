@@ -50,7 +50,9 @@ defmodule Replica do
 
   end # propose
 
-  defp perform({_, _, op}, decisions, slot_out, state, database) do
+  defp perform(cmd, decisions, slot_out, state, database) do
+    {s, c, op} = cmd
+    IO.puts(inspect(decisions))
     slots = for {s, _} <- decisions, do: s
     # TODO: reconfig() for crash tolerance
     if Enum.any?(slots, fn(s) -> s < slot_out end) do
@@ -67,7 +69,7 @@ defmodule Replica do
 
   defp while_propose(slot_in, slot_out, requests, proposals, decisions, leaders) do
     #if slot_in < slot_out + window and Enum.empty?(requests)do
-    if slot_in < slot_out + 3 and Enum.empty?(requests)do
+    if slot_in < slot_out + 10 and !Enum.empty?(requests) do
       # if statement for fault tolerance
       c = Enum.at(requests, 0) 
       {new_requests, new_proposals} = 

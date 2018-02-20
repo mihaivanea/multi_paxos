@@ -13,12 +13,13 @@ defmodule Commander do
     receive do
       {:p2b, a, b_prime} ->
         if b_prime == b  do
-          waitfor = MapSet.delete(waitfor, a)
-          if MapSet.size(waitfor) < (MapSet.size(acceptors) / 2) do
+          new_waitfor = List.delete(waitfor, a)
+          if length(waitfor) < (length(acceptors) / 2) do
             for r <- replicas, do:
               send(r, {:decision, s, c})
             Process.exit(self(), :exit)
           end
+          next(leader, acceptors, replicas, {b, s, c}, new_waitfor)
         else
           send(leader, {:preempted, b_prime})
           Process.exit(self(), :exit)

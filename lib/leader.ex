@@ -2,41 +2,43 @@
 
 defmodule Leader do
 
-  def start(acceptors, replicas) do
-    ballot_num = {0, self()}
-    active = false
-    proposals = MapSet.new()
-    # TODO: change scout index
-    # scout_name = DAC.node_name(config.setup, "scout", 0)
-    DAC.node_spawn("scout", Scout, :start, [self(), acceptors, ballot_num])
-    next(acceptors, replicas, ballot_num, active, proposals)
+  def start(config) do
+    receive do
+      {:bind, acceptors, replicas} ->
+        ballot_num = {0, self()}
+        # TODO: change scout index
+        scout_name = DAC.node_name(config.setup, "scout", 0)
+        DAC.node_spawn(scout_name, Scout, :start, [self(), acceptors, ballot_num])
+        next(acceptors, replicas, ballot_num, false, MapSet.new(), config)
+    end
   end # start
 
-  defp next(acceptors, replicas, ballot_num, active, proposals) do
+  defp next(acceptors, replicas, ballot_num, active, proposals, config) do
     receive do
       {:propose, s, c} ->
-        if !DAC.there_exists(proposals, s) do
+        if !DAC.there_exists(proposals, {s, c}) do
           if active do
             # TODO: change commander index
-            # commander_name = DAC.node_name(config.setup, "commander", 0)
-            DAC.node_spawn("commander", Commander, :start, [self(), 
+            commander_name = DAC.node_name(config.setup, "commander", s)
+            DAC.node_spawn(commander_name, Commander, :start, [self(), 
               acceptors, replicas, {ballot_num, s, c}])
           end
-          next(acceptors, replicas, ballot_num, active, MapSet.put(proposals, {s, c}))
+          next(acceptors, replicas, ballot_num, active, MapSet.put(proposals, {s, c}), config)
         end
       {:adopted, ballot_num, pvalues} ->
         updated_proposals = update(proposals, pmax(pvalues))
         for {s, c} <- updated_proposals, do:
-          DAC.node_spawn("commander", Commander, :start, [self(), 
-            acceptors, replicas, {ballot_num, s, c}])
-        next(acceptors, replicas, ballot_num, true, updated_proposals)
+          DAC.node_spawn(DAC.node_name(config.setup, "commander", s), 
+            Commander, :start, [self(), acceptors, replicas, {ballot_num, s, c}])
+        next(acceptors, replicas, ballot_num, true, updated_proposals, config)
       {:preempted, {r_prime, leader_prime}} ->
         if {r_prime, leader_prime} > ballot_num do
-          DAC.node_spawn("scout", Scout, :start, [self(), acceptors, ballot_num])
-          next(acceptors, replicas, {r_prime + 1, self()}, false, proposals)
+          DAC.node_spawn(DAC.node_name(config.setup, "scout", r_prime + 1), Scout, 
+          :start, [self(), acceptors, ballot_num])
+          next(acceptors, replicas, {r_prime + 1, self()}, false, proposals, config)
         end
     end
-    next(acceptors, replicas, ballot_num, active, proposals)
+    next(acceptors, replicas, ballot_num, active, proposals, config)
   end # next
 
   defp get_highest_ballot(pvalues, slot) do
@@ -55,7 +57,7 @@ defmodule Leader do
 
   defp update(x, y) do
     x_list = Enum.filter(MapSet.to_list(x), fn {s, c} -> !DAC.there_exists(x, {s, c}) end) 
-    MapSet.union(MapSet.new(x_list), y)
+    MapSet.union(MapSet.new(x_list), MapSet.new(y))
   end # update
 
 end # Leader

@@ -15,8 +15,8 @@ defmodule Scout do
       {:p1b, a, b_prime, r} ->
         if b_prime == b do
           new_pvalues = MapSet.put(pvalues, r)
-          new_waitfor = MapSet.delete(waitfor, a)
-          if MapSet.size(new_waitfor) < (MapSet.size(acceptors) / 2) do
+          new_waitfor = List.delete(waitfor, a)
+          if length(new_waitfor) < (length(acceptors) / 2) do
             send(leader, {:adopted, b, new_pvalues})
             Process.exit(self(), :exit)
           end

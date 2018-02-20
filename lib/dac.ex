@@ -61,7 +61,7 @@ def there_exists(set, {s, c}) do
   cmd_list = for {^s, c} <- set, do: c
   match_slots = for {^s, c1} <- MapSet.to_list(set), do: {s, c1}
   match_slots = for m <- match_slots, do: {m, c}
-  Enum.any?(match_slots, fn({{_, c}, c1}) -> Enum.member?(cmd_list, c1) end)
+  Enum.any?(match_slots, fn({{_, _}, c1}) -> Enum.member?(cmd_list, c1) end)
 end # there_exists
 
 end # module -----------------------
