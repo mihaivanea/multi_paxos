@@ -37,11 +37,9 @@ defmodule Leader do
         if {r_prime, leader_prime} > ballot_num do
           DAC.node_spawn(DAC.node_name(config.setup, "detector", r_prime), 
             Detector, :start, [r_prime, leader_prime, self()])
-            #IO.puts "spawned detector #{inspect self()}"
         end
         next(acceptors, replicas, ballot_num, active, proposals, config)
       {:ping, detector} ->
-        #IO.puts("PONG")
         send(detector, {:pong})
         next(acceptors, replicas, ballot_num, active, proposals, config)
       {:failure, r_prime} ->
