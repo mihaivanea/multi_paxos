@@ -11,10 +11,11 @@ defmodule Scout do
   end # start
 
   defp next(leader, acceptors, b, waitfor, pvalues) do
+    IO.write("s")
     receive do
       {:p1b, a, b_prime, r} ->
         if b_prime == b do
-          new_pvalues = MapSet.put(pvalues, r)
+          new_pvalues = MapSet.union(pvalues, r)
           new_waitfor = List.delete(waitfor, a)
           if length(new_waitfor) < (length(acceptors) / 2) do
             send(leader, {:adopted, b, new_pvalues})
@@ -22,6 +23,7 @@ defmodule Scout do
           end
           next(leader, acceptors, b, new_waitfor, new_pvalues)
         else
+          IO.puts("HERE")
           send(leader, {:preempted, b_prime})
           Process.exit(self(), :exit)
         end

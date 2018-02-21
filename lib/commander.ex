@@ -1,4 +1,4 @@
-# Mihail Vanea (mv1315)
+# Mihail Vanea (mv1316)
 
 defmodule Commander do
 
@@ -10,6 +10,7 @@ defmodule Commander do
   end # start
 
   defp next(leader, acceptors, replicas, {b, s, c}, waitfor) do
+    IO.write("c")
     receive do
       {:p2b, a, b_prime} ->
         if b_prime == b  do
@@ -22,6 +23,7 @@ defmodule Commander do
           next(leader, acceptors, replicas, {b, s, c}, new_waitfor)
         else
           send(leader, {:preempted, b_prime})
+          # Process.sleep(1000)
           Process.exit(self(), :exit)
         end
     end

@@ -40,7 +40,7 @@ defp next config, clock, requests, updates, transactions do
     updates = Map.put updates, db, seqnum 
     next config, clock, requests, updates, transactions
       
-  { :client_request, server_num } ->  # requests by replica
+  { :request, server_num } ->  # requests by replica
     seen = Map.get requests, server_num, 0
     requests = Map.put requests, server_num, seen + 1
     next config, clock, requests, updates, transactions 

@@ -58,10 +58,12 @@ def get_config do
 end
 
 def there_exists(set, {s, c}) do
-  cmd_list = for {^s, c} <- set, do: c
-  match_slots = for {^s, c1} <- MapSet.to_list(set), do: {s, c1}
-  match_slots = for m <- match_slots, do: {m, c}
-  Enum.any?(match_slots, fn({{_, _}, c1}) -> Enum.member?(cmd_list, c1) end)
+  #cmd_list = for {^s, c} <- set, do: c
+  #match_slots = for {^s, c1} <- MapSet.to_list(set), do: {s, c1}
+  #match_slots = for m <- match_slots, do: {m, c}
+  #Enum.any?(match_slots, fn({{_, c}, c1}) -> c != c1 and Enum.member?(cmd_list, c1) end)
+  slots = for {s, c} <- set, do: s
+  Enum.member?(slots, s)
 end # there_exists
 
 end # module -----------------------
