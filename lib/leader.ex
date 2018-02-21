@@ -24,8 +24,9 @@ defmodule Leader do
               acceptors, replicas, {ballot_num, s, c}])
           end
           next(acceptors, replicas, ballot_num, active, MapSet.put(proposals, {s, c}), config)
+        else
+          next(acceptors, replicas, ballot_num, active, proposals, config)
         end
-        next(acceptors, replicas, ballot_num, active, proposals, config)
       {:adopted, b, pvalues} ->
         updated_proposals = update(proposals, pmax(pvalues))
         for {s, c} <- updated_proposals, do:
@@ -33,14 +34,20 @@ defmodule Leader do
             Commander, :start, [self(), acceptors, replicas, {b, s, c}])
         next(acceptors, replicas, b, true, updated_proposals, config)
       {:preempted, {r_prime, leader_prime}} ->
-        Process.sleep(100)
         if {r_prime, leader_prime} > ballot_num do
-          new_ballot_num = {r_prime + 1, self()}
-          DAC.node_spawn(DAC.node_name(config.setup, "scout", r_prime + 1), Scout, 
-          :start, [self(), acceptors, new_ballot_num])
-          next(acceptors, replicas, new_ballot_num, false, proposals, config)
+          DAC.node_spawn(DAC.node_name(config.setup, "detector", r_prime), 
+            Detector, :start, [r_prime, leader_prime, self()])
+            #IO.puts "spawned detector #{inspect self()}"
         end
         next(acceptors, replicas, ballot_num, active, proposals, config)
+      {:ping, detector} ->
+        #IO.puts("PONG")
+        send(detector, {:pong})
+        next(acceptors, replicas, ballot_num, active, proposals, config)
+      {:failure, r_prime} ->
+        DAC.node_spawn(DAC.node_name(config.setup, "scout", r_prime + 1), Scout, 
+        :start, [self(), acceptors, {r_prime + 1, self()}])
+        next(acceptors, replicas, {r_prime + 1, self()}, false, proposals, config)
     end
   end # next
 

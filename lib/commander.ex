@@ -22,7 +22,6 @@ defmodule Commander do
           next(leader, acceptors, replicas, {b, s, c}, new_waitfor)
         else
           send(leader, {:preempted, b_prime})
-          # Process.sleep(1000)
           Process.exit(self(), :exit)
         end
     end

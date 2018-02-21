@@ -27,13 +27,18 @@ defmodule Replica do
   end # next
 
   defp while_decision(decisions, proposals, requests, slot_out, c, state, leaders, database) do
+    #IO.puts("#{inspect(decisions)}    #{inspect({slot_out, c})}   inspect(DAC.there_exists(decisions, {slot_out, c})) ")
     if DAC.there_exists(decisions, {slot_out, c}) do
-      c_prime = for {^slot_out, c} <- MapSet.to_list(decisions), do: c
+      c_prime = get_cmd(for {^slot_out, c} <- MapSet.to_list(decisions), do: c)
+      #IO.inspect(c_prime)
       {new_proposals, new_requests} = if DAC.there_exists(proposals, {slot_out, c}) do
-          c_second = Enum.take((for {^slot_out, c} <- MapSet.to_list(proposals), do: c), 1)
+          c_second = get_cmd(Enum.take((for {^slot_out, c} <- MapSet.to_list(proposals), do: c), 1))
           new_proposals = MapSet.delete(proposals, {slot_out, c_second})
+          #IO.inspect({slot_out, c_second})
+          #
           new_requests = if c_second != c_prime do MapSet.put(
             requests, c_second) else requests end
+            #IO.puts "diff is #{MapSet.size(proposals) - MapSet.size(new_proposals)}"
           {new_proposals, new_requests}
         else
           {proposals, requests}
@@ -41,6 +46,7 @@ defmodule Replica do
       {new_slot_out, new_state} = perform(c_prime, decisions, slot_out, state, database)
       while_decision(decisions, new_proposals, new_requests, new_slot_out, c, new_state, leaders, database)
     else
+      #IO.puts "Slot #{slot_out} is not in #{inspect decisions}"
       {proposals, requests, slot_out, state}
     end
   end # while_decision
@@ -51,16 +57,18 @@ defmodule Replica do
   end # propose
 
   defp perform(cmd, decisions, slot_out, state, database) do
-    [h|t] = cmd
-    {_, _, op} = h
-    slots = for {s, _} <- decisions, do: s
+    {_, _, op} = cmd
+    slots = for {s, ^cmd} <- decisions, do: s
+    #slots = for {s, _} <- decisions, do: s
     # TODO: reconfig() for crash tolerance
     if Enum.any?(slots, fn(s) -> s < slot_out end) do
+      #IO.puts "checking if slot #{slot_out} is bigger than anything in  #{inspect slots}"
       {slot_out + 1, state}
     else
       # TODO: for crash tolerance
       # {next, result} = op(state) 
       send(database, {:execute, op})
+      #IO.puts "updating db"
       # TODO: for crash tolerance
       # send(k, {:response, cid, result})
       {slot_out + 1, state}
@@ -72,7 +80,7 @@ defmodule Replica do
 
   defp while_propose(slot_in, slot_out, requests, proposals, decisions, leaders) do
     #if slot_in < slot_out + window and Enum.empty?(requests)do
-    if slot_in < slot_out + 10_000_000 and !Enum.empty?(requests) do
+    if slot_in < slot_out + 20 and !Enum.empty?(requests) do
       # if statement for fault tolerance
       c = get_cmd(Enum.at(requests, 0))
       {new_requests, new_proposals} = 
@@ -85,6 +93,7 @@ defmodule Replica do
         else
           {requests, proposals}
         end
+        #IO.inspect(proposals)
       while_propose(slot_in + 1, slot_out, new_requests, new_proposals, decisions, leaders)
     else
       {slot_in, requests, proposals}
