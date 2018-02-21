@@ -11,6 +11,7 @@ defmodule Scout do
   end # start
 
   defp next(leader, acceptors, b, waitfor, pvalues) do
+    IO.write("s")
     receive do
       {:p1b, a, b_prime, r} ->
         if b_prime == b do

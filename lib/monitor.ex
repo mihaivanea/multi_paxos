@@ -50,7 +50,7 @@ defp next config, clock, requests, updates, transactions do
     sorted = updates |> Map.to_list |> List.keysort(0)
     IO.puts "time = #{clock}  updates done = #{inspect sorted}"
     sorted = requests |> Map.to_list |> List.keysort(0)
-    IO.puts "time = #{clock} requests seen = #{inspect sorted}"
+    #IO.puts "time = #{clock} requests seen = #{inspect sorted}"
     IO.puts ""
     Process.send_after self(), :print, config.print_after
     next config, clock, requests, updates, transactions

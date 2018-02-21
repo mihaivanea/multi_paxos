@@ -10,6 +10,7 @@ defmodule Replica do
   end # start
 
   defp next(state, slot_in, slot_out, requests, proposals, decisions, leaders, database) do
+    IO.write("r")
     receive do
       {:request, c} -> 
         n_requests = MapSet.put(requests, c)
