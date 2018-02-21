@@ -11,7 +11,6 @@ defmodule Scout do
   end # start
 
   defp next(leader, acceptors, b, waitfor, pvalues) do
-    IO.write("s")
     receive do
       {:p1b, a, b_prime, r} ->
         if b_prime == b do
@@ -23,7 +22,6 @@ defmodule Scout do
           end
           next(leader, acceptors, b, new_waitfor, new_pvalues)
         else
-          IO.puts("HERE")
           send(leader, {:preempted, b_prime})
           Process.exit(self(), :exit)
         end

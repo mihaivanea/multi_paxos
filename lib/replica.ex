@@ -10,7 +10,6 @@ defmodule Replica do
   end # start
 
   defp next(state, slot_in, slot_out, requests, proposals, decisions, leaders, database) do
-    IO.write("r")
     receive do
       {:request, c} -> 
         new_requests = MapSet.put(requests, c)
@@ -69,7 +68,7 @@ defmodule Replica do
 
   defp while_propose(slot_in, slot_out, requests, proposals, decisions, leaders) do
     #if slot_in < slot_out + window and Enum.empty?(requests)do
-    if slot_in < slot_out + 5 and !Enum.empty?(requests) do
+    if slot_in < slot_out + 10_000_000 and !Enum.empty?(requests) do
       # if statement for fault tolerance
       c = Enum.at(requests, 0) 
       {new_requests, new_proposals} = 
