@@ -12,9 +12,9 @@ defmodule Replica do
   defp next(state, slot_in, slot_out, requests, proposals, decisions, leaders, database) do
     receive do
       {:request, c} -> 
-        new_requests = MapSet.put(requests, c)
+        n_requests = MapSet.put(requests, c)
         {new_slot_in, new_requests, new_proposals} = 
-          propose(slot_in, slot_out, new_requests, proposals, decisions, leaders)
+          propose(slot_in, slot_out, n_requests, proposals, decisions, leaders)
         next(state, new_slot_in, slot_out, new_requests, new_proposals, decisions, leaders, database)
       {:decision, s, c} -> 
         new_decisions = MapSet.put(decisions, {s, c})
@@ -30,7 +30,7 @@ defmodule Replica do
     if DAC.there_exists(decisions, {slot_out, c}) do
       c_prime = for {^slot_out, c} <- MapSet.to_list(decisions), do: c
       {new_proposals, new_requests} = if DAC.there_exists(proposals, {slot_out, c}) do
-          c_second = for {^slot_out, c} <- MapSet.to_list(proposals), do: c
+          c_second = Enum.take((for {^slot_out, c} <- MapSet.to_list(proposals), do: c), 1)
           new_proposals = MapSet.delete(proposals, {slot_out, c_second})
           new_requests = if c_second != c_prime do MapSet.put(
             requests, c_second) else requests end
@@ -51,7 +51,8 @@ defmodule Replica do
   end # propose
 
   defp perform(cmd, decisions, slot_out, state, database) do
-    {s, c, op} = Enum.at(cmd, 0)
+    [h|t] = cmd
+    {_, _, op} = h
     slots = for {s, _} <- decisions, do: s
     # TODO: reconfig() for crash tolerance
     if Enum.any?(slots, fn(s) -> s < slot_out end) do
@@ -66,18 +67,21 @@ defmodule Replica do
     end
   end # perform
 
+  defp get_cmd([x]) do get_cmd(x) end
+  defp get_cmd(x) do x end
+
   defp while_propose(slot_in, slot_out, requests, proposals, decisions, leaders) do
     #if slot_in < slot_out + window and Enum.empty?(requests)do
     if slot_in < slot_out + 10_000_000 and !Enum.empty?(requests) do
       # if statement for fault tolerance
-      c = Enum.at(requests, 0) 
+      c = get_cmd(Enum.at(requests, 0))
       {new_requests, new_proposals} = 
         if !DAC.there_exists(decisions, {slot_in, c}) do
-          new_requests = MapSet.delete(requests, c)
-          new_proposals = MapSet.put(proposals, {slot_in, c})
+          n_requests = MapSet.delete(requests, c)
+          n_proposals = MapSet.put(proposals, {slot_in, c})
           for l <- leaders, do:
             send(l, {:propose, slot_in, c})
-          {new_requests, new_proposals}
+          {n_requests, n_proposals}
         else
           {requests, proposals}
         end

@@ -33,6 +33,7 @@ defmodule Leader do
             Commander, :start, [self(), acceptors, replicas, {b, s, c}])
         next(acceptors, replicas, b, true, updated_proposals, config)
       {:preempted, {r_prime, leader_prime}} ->
+        Process.sleep(100)
         if {r_prime, leader_prime} > ballot_num do
           new_ballot_num = {r_prime + 1, self()}
           DAC.node_spawn(DAC.node_name(config.setup, "scout", r_prime + 1), Scout, 
