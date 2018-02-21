@@ -9,7 +9,6 @@ defmodule Acceptor do
   end # start
 
   defp next(ballot_num, accepted) do
-    IO.write("a")
     receive do
       {:p1a, leader, b} -> 
         new_ballot_num = if b > ballot_num do b else ballot_num end

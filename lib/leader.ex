@@ -14,7 +14,6 @@ defmodule Leader do
   end # start
 
   defp next(acceptors, replicas, ballot_num, active, proposals, config) do
-    IO.write("l")
     receive do
       {:propose, s, c} ->
         if !DAC.there_exists(proposals, {s, c}) do

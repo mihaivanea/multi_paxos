@@ -10,7 +10,6 @@ defmodule Commander do
   end # start
 
   defp next(leader, acceptors, replicas, {b, s, c}, waitfor) do
-    IO.write("c")
     receive do
       {:p2b, a, b_prime} ->
         if b_prime == b  do
