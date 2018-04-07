@@ -11,8 +11,7 @@ defmodule Detector do
     receive do
       {:pong} -> 
         next(r_prime, leader_prime, leader)
-    after
-      1000 ->
+    after 1000 ->
         send(leader, {:failure, r_prime})
     end
   end # next
