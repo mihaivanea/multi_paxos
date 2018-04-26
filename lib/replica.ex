@@ -70,7 +70,7 @@ defmodule Replica do
   defp get_cmd(x) do x end
 
   defp while_propose(slot_in, slot_out, requests, proposals, decisions, leaders) do
-    if slot_in < slot_out + 20 and !Enum.empty?(requests) do
+    if slot_in < slot_out + 200 and !Enum.empty?(requests) do
       # if statement for fault tolerance
       c = get_cmd(Enum.at(requests, 0))
       {new_requests, new_proposals} = 
