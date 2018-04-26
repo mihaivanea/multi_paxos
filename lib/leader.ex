@@ -6,46 +6,63 @@ defmodule Leader do
     receive do
       {:bind, acceptors, replicas} ->
         ballot_num = {0, self()}
-        # TODO: change scout index
         scout_name = DAC.node_name(config.setup, "scout", 0)
-        DAC.node_spawn(scout_name, Scout, :start, [self(), acceptors, ballot_num])
-        next(acceptors, replicas, ballot_num, false, MapSet.new(), config)
+        DAC.node_spawn(scout_name, Scout, :start, [self(), acceptors, 
+          ballot_num])
+        state = %{}
+        state = Map.put(state, :acceptors, acceptors)
+        state = Map.put(state, :replicas, replicas)
+        state = Map.put(state, :ballot_num, ballot_num)
+        state = Map.put(state, :active_flag, false)
+        state = Map.put(state, :proposals, MapSet.new())
+        state = Map.put(state, :config, config)
+        next(state)
     end
   end # start
 
-  defp next(acceptors, replicas, ballot_num, active, proposals, config) do
+  defp next(state) do
     receive do
       {:propose, s, c} ->
-        if !DAC.there_exists(proposals, {s, c}) do
-          if active do
+        if !DAC.there_exists(state[:proposals], {s, c}) do
+          if state[:active_flag] do
             # TODO: change commander index
-            commander_name = DAC.node_name(config.setup, "commander", s)
+            commander_name = DAC.node_name(state[:config].setup, "commander", s)
             DAC.node_spawn(commander_name, Commander, :start, [self(), 
-              acceptors, replicas, {ballot_num, s, c}])
+              state[:acceptors], state[:replicas], {state[:ballot_num], s, c}])
           end
-          next(acceptors, replicas, ballot_num, active, MapSet.put(proposals, {s, c}), config)
+          state = Map.update!(state, :proposals, 
+            fn p -> MapSet.put(p, {s, c}) end)
+          next(state)
         else
-          next(acceptors, replicas, ballot_num, active, proposals, config)
+          next(state)
         end
       {:adopted, b, pvalues} ->
-        updated_proposals = update(proposals, pmax(pvalues))
+        updated_proposals = update(state[:proposals], pmax(pvalues))
         for {s, c} <- updated_proposals, do:
-          DAC.node_spawn(DAC.node_name(config.setup, "commander", s), 
-            Commander, :start, [self(), acceptors, replicas, {b, s, c}])
-        next(acceptors, replicas, b, true, updated_proposals, config)
+          DAC.node_spawn(DAC.node_name(state[:config].setup, "commander", s), 
+            Commander, :start, [self(), state[:acceptors], state[:replicas], 
+            {b, s, c}])
+        state = Map.update!(state, :ballot_num, fn _ -> b end)
+        state = Map.update!(state, :active_flag, fn _ -> true end)
+        state = Map.update!(state, :proposals, fn _ -> updated_proposals end)
+        next(state)
       {:preempted, {r_prime, leader_prime}} ->
-        if {r_prime, leader_prime} > ballot_num do
-          DAC.node_spawn(DAC.node_name(config.setup, "detector", r_prime), 
-            Detector, :start, [r_prime, leader_prime, self()])
+        if {r_prime, leader_prime} > state[:ballot_num] do
+          DAC.node_spawn(DAC.node_name(state[:config].setup, "detector", 
+            r_prime), Detector, :start, [r_prime, leader_prime, self()])
         end
-        next(acceptors, replicas, ballot_num, active, proposals, config)
+        next(state)
       {:ping, detector} ->
         send(detector, {:pong})
-        next(acceptors, replicas, ballot_num, active, proposals, config)
+        next(state)
       {:failure, r_prime} ->
-        DAC.node_spawn(DAC.node_name(config.setup, "scout", r_prime + 1), Scout, 
-        :start, [self(), acceptors, {r_prime + 1, self()}])
-        next(acceptors, replicas, {r_prime + 1, self()}, false, proposals, config)
+        DAC.node_spawn(DAC.node_name(state[:config].setup, "scout", 
+          r_prime + 1), Scout, :start, [self(), state[:acceptors], {r_prime + 1,
+          self()}])
+        state = Map.update!(state, :ballot_num, 
+          fn {r_prime, pid} -> {r_prime + 1, self()} end)
+        state = Map.update!(state, :active_flag, fn _ -> false end)
+        next(state)
     end
   end # next
 
@@ -63,7 +80,8 @@ defmodule Leader do
   end # pmax
 
   defp update(x, y) do
-    x_list = Enum.filter(MapSet.to_list(x), fn {s, c} -> !DAC.there_exists(x, {s, c}) end) 
+    x_list = Enum.filter(MapSet.to_list(x), fn {s, c} -> 
+      !DAC.there_exists(x, {s, c}) end) 
     MapSet.union(MapSet.new(x_list), MapSet.new(y))
   end # update
 

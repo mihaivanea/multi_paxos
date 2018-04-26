@@ -30,8 +30,8 @@ defp next config, clock, requests, updates, transactions do
 
       t -> # already logged - check transaction
         if amount != t.amount or from != t.from or to != t.to do
-	  IO.puts " ** error db #{db}.#{done} [#{amount},#{from},#{to}] " <>
-            "= log #{done}/#{Map.size transactions} [#{t.amount},#{t.from},#{t.to}]"
+	  IO.puts " ** error db #{db}.#{done} [#{amount},#{from},#{to}] = log #" <>
+            "{done}/#{Map.size transactions} [#{t.amount},#{t.from},#{t.to}]"
           System.halt 
         end
         transactions
