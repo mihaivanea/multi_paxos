@@ -1,3 +1,16 @@
+# Multi-paxos
+
+This is an Elixir implementation of the Paxos protocol, used to solve consensus
+in a network of processes that is fault tolerant.
+
+The protocol can run on either a single Elixir node or in a network of nodes,
+each running in its own Docker container.
+
+The following diagram descibes the system architecture what messages are
+exchanged between different Elixir components.
+
+![Paxos diagram](./resources/q24.jpg "Paxos diagram")
+
 # compile and run options
 
 make compile	- compile
