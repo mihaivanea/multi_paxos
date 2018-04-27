@@ -1,5 +1,3 @@
-# Mihail Vanea (mv1316)
-
 defmodule Detector do
 
   def start(r_prime, leader_prime, leader) do

@@ -1,5 +1,3 @@
-# Mihail Vanea (mv1316)
-
 defmodule Commander do
 
   def start(leader, acceptors, replicas, {b, s, c}) do

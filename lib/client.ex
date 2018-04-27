@@ -1,5 +1,3 @@
-# Mihail Vanea (mv1315)
-
 defmodule Client do
 
   def start(config, client_num, replicas) do

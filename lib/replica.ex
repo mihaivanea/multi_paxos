@@ -1,5 +1,3 @@
-# Mihail Vanea (mv1316)
-
 defmodule Replica do
 
   def start(config, database, _) do

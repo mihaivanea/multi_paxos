@@ -1,8 +1,3 @@
-# Mihail Vanea (mv1315)
-
-# distributed algorithms, n.dulay 2 feb 17 
-# coursework 2, paxos made moderately complex
-
 defmodule Paxos do
 
 def main do 

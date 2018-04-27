@@ -1,5 +1,3 @@
-# Mihail Vanea (mv1315)
-
 defmodule Scout do
 
   def start(leader, acceptors, b) do

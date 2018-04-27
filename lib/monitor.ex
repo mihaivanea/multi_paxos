@@ -1,8 +1,3 @@
-# Mihail Vanea (mv1315)
-
-# distributed algorithms, n.dulay 2 feb 18
-# coursework 2, paxos made moderately complex
-
 defmodule Monitor do
 
 def start config do
@@ -49,7 +44,7 @@ defp next config, clock, requests, updates, transactions do
     clock = clock + config.print_after 
     sorted = updates |> Map.to_list |> List.keysort(0)
     IO.puts "time = #{clock}  updates done = #{inspect sorted}"
-    sorted = requests |> Map.to_list |> List.keysort(0)
+    #sorted = requests |> Map.to_list |> List.keysort(0)
     #IO.puts "time = #{clock} requests seen = #{inspect sorted}"
     IO.puts ""
     Process.send_after self(), :print, config.print_after

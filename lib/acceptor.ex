@@ -1,5 +1,3 @@
-# Mihail Vanea (mv1315)
-
 defmodule Acceptor do
 
   def start(_) do

@@ -1,8 +1,3 @@
-# Mihail Vanea (mv1315)
-
-# distributed algorithms, n.dulay, 2 feb 18
-# multi-paxos, configuration parameters v1
-
 defmodule Configuration do
 
 def version 1 do	# configuration 1
