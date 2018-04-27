@@ -1,12 +1,12 @@
 # Multi-paxos
 
 This is an Elixir implementation of the Paxos protocol, used to solve consensus
-in a network of processes that is fault tolerant.
+in a network of processes that can experience faults.
 
 The protocol can run on either a single Elixir node or in a network of nodes,
 each running in its own Docker container.
 
-The following diagram descibes the system architecture what messages are
+The following diagram descibes the system architecture and what messages are
 exchanged between different Elixir components.
 
 ![Paxos diagram](./resources/q24.jpg "Paxos diagram")
@@ -32,5 +32,3 @@ make show	- list docker containers and networks
 make ssh_up	- run on real hosts via ssh (omitted) 
 make ssh_down	- kill nodes on real network (omitted)
 make ssh_show	- show running nodes on real network (omitted)
-
-
