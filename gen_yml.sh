@@ -1,8 +1,3 @@
-#!/bin/bash
-
-# distributed algorithms, n.dulay 25 jan 18
-# coursework 2, create docker-compose.yml file
-
 MAIN=$1
 CONFIG=$2
 SETUP=$3
@@ -13,11 +8,6 @@ FILE=docker-compose.yml
 
 # ----------------------------------------------------------
 cat > $FILE << ENDHEADER
-
-# distributed algorithms, n.dulay, 2 feb 18
-# coursework 2 - paxos made moderately complex
-
-# docker-compose.yml v1  
 
 version: "3.4"
 

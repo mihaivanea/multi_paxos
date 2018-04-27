@@ -1,7 +1,3 @@
-
-# distributed algorithms, n.dulay, 2 feb 18
-# coursework 2, multi-paxos
-
 # compile and run options
 
 make compile	- compile
