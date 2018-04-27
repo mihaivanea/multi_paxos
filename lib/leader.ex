@@ -60,7 +60,7 @@ defmodule Leader do
           r_prime + 1), Scout, :start, [self(), state[:acceptors], {r_prime + 1,
           self()}])
         state = Map.update!(state, :ballot_num, 
-          fn {r_prime, pid} -> {r_prime + 1, self()} end)
+          fn {r_prime, _} -> {r_prime + 1, self()} end)
         state = Map.update!(state, :active_flag, fn _ -> false end)
         next(state)
     end

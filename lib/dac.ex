@@ -57,8 +57,8 @@ def get_config do
   config
 end
 
-def there_exists(set, {s, c}) do
-  slots = for {s, c} <- set, do: s
+def there_exists(set, {s, _}) do
+  slots = for {s, _} <- set, do: s
   Enum.member?(slots, s)
 end # there_exists
 
